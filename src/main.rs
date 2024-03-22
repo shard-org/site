@@ -58,6 +58,9 @@ async fn main() {
         std::process::exit(1);
     });
 
+    // call init
+    // funcs::_init();
+
     let listener = TcpListener::bind((conf.addr, conf.port)).await.handle();
 
     loop {
@@ -77,15 +80,20 @@ async fn main() {
 async fn handle_request(req: Request<Incoming>) -> Result<Response<BoxBody<Bytes, Infallible>>, Error> {
     let (parts, body) = req.into_parts();
 
+    let body = body.collect().await.unwrap().to_bytes();
+
     let uri = parts.uri.to_string();
-    let uri = urlencoding::decode(&uri)?;
+    let (uri, args) = parse_uri_args(&uri);
 
     let res = match parts.uri.path() {
 /* ##FUNC_MATCH_START## */
-"/time" => funcs::time(uri, parts.headers, body).await.into_response(),
-"/" => funcs::index(uri, parts.headers, body).await.into_response(),
-"/blog" => funcs::blog(uri, parts.headers, body).await.into_response(),
-"/dice" => funcs::dice(uri, parts.headers, body).await.into_response(),
+"/ftoc" => funcs::ftoc(uri, args, parts.headers, body).await.into_response(),
+"/news" => funcs::news(uri, args, parts.headers, body).await.into_response(),
+"/time" => funcs::time(uri, args, parts.headers, body).await.into_response(),
+"/" => funcs::index(uri, args, parts.headers, body).await.into_response(),
+"/blog" => funcs::blog(uri, args, parts.headers, body).await.into_response(),
+"/dice" => funcs::dice(uri, args, parts.headers, body).await.into_response(),
+"/rocks" => funcs::rocks(uri, args, parts.headers, body).await.into_response(),
 
 /* ##FUNC_MATCH_END## */
         name => {
@@ -106,6 +114,32 @@ async fn handle_request(req: Request<Incoming>) -> Result<Response<BoxBody<Bytes
     Ok(boxed(res))
 }
 
+
+fn parse_uri_args<'a>(uri: &'a str) -> (&'a str, HashMap<&'a str, String>) {
+    let Some((uri, args)) = uri.split_once('?') else {
+        return (uri, HashMap::new());
+    };
+
+    let args = args.split('&');
+
+    let mut out_args = HashMap::new();
+    for arg in args {
+        let (key, value) = arg.split_once('=')
+            .unwrap_or((arg, ""));
+
+        let value = value.replace('+', " ");
+
+        let value = urlencoding::decode(&value)
+            .map(|v| v.into_owned())
+            .unwrap_or(String::new());
+
+        out_args.insert(key, value);
+    }
+
+    (uri, out_args)
+}
+
+
 pub async fn not_found() -> Response<BoxBody<Bytes, Infallible>> {
     const BACKUP: &[u8] = b"404 not_found page... not found... uh oh";
 
@@ -115,6 +149,7 @@ pub async fn not_found() -> Response<BoxBody<Bytes, Infallible>> {
 }
 
 
+
 pub trait IntoResponse {
     fn into_response(self) -> Response<Bytes>;
 }
@@ -122,6 +157,14 @@ pub trait IntoResponse {
 impl<T: AsRef<[u8]>> IntoResponse for T {
     fn into_response(self) -> Response<Bytes> {
         response(self, StatusCode::OK)
+    }
+}
+
+pub struct Res<T>(T, StatusCode);
+
+impl<T: AsRef<[u8]>> IntoResponse for Res<T> {
+    fn into_response(self) -> Response<Bytes> {
+        response(self.0, self.1)
     }
 }
 
@@ -175,7 +218,7 @@ pub fn file_nc(filename: &str) -> Result<Box<[u8]>, std::io::Error> {
     Ok(buffer.into_boxed_slice())
 }
 
-pub fn response<T: AsRef<[u8]>>(chunk: T, code: StatusCode) -> Response<Bytes> {
+fn response<T: AsRef<[u8]>>(chunk: T, code: StatusCode) -> Response<Bytes> {
     let bytes = chunk.as_ref().to_vec();
     Response::builder()
         .status(code)
