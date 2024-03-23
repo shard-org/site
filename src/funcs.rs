@@ -6,6 +6,7 @@ use hyper::{
     body::Bytes,
     Request, Response, StatusCode,
 };
+use std::borrow::Cow;
 use std::collections::HashMap;
 use crate::Error;
 #
@@ -80,7 +81,7 @@ format!(r#"
 pub async fn news(uri: &str, args: HashMap<&str, String>, headers: HeaderMap<HeaderValue>, body: Bytes) -> impl crate::IntoResponse {
 if let Some(token) = args.get("t") {
     let token: &str = &token;
-    if !NEWS_TOKENS.contains(&token) {
+    if !TOKENS.contains(&token) {
         return crate::Res(String::from("Invalid Token.. nice try :p"), StatusCode::UNAUTHORIZED);
     }
 
@@ -95,7 +96,7 @@ if let Some(token) = args.get("t") {
 }
 
 
-let news = NEWS.lock().await;
+let news = NEWS.read().await;
 if args.contains_key("q") {
     let news = match args.get("n") {
         Some(n) => {
@@ -108,7 +109,7 @@ if args.contains_key("q") {
             };
             news
         },
-        None => news.last().unwrap(),
+        None => news.first().unwrap(),
     };
 
     let news_time = Local.timestamp_opt(news.0 as i64, 0)
@@ -128,9 +129,7 @@ if args.contains_key("q") {
     return crate::Res(format!("{news_time}: {msg}"), StatusCode::OK);
 }
 
-let mut sorted = news;
-sorted.sort_by(|a, b| b.cmp(a)); // reverse sort (oldest first)
-let news_str = sorted.iter().fold(String::new(), |mut acc, (t, m)| {
+let news_str = news.iter().rev().fold(String::new(), |mut acc, (t, m)| {
     let time = Local.timestamp_opt(*t as i64, 0)
         .unwrap().format("%d-%m-%y");
 
@@ -153,6 +152,11 @@ crate::Res(format!(r#"
 </body>
 "#), StatusCode::OK)
 }
+const TOKENS: &[&str] = &[
+    "MBrgJ15MF5jinC7KbgmZv7QhvtzRL4Znr7R38PSH5k", // anthony
+];
+
+
 
 lazy_static::lazy_static! {
     static ref HEADER: String = {
@@ -161,7 +165,6 @@ lazy_static::lazy_static! {
     };
 
 }
-
 
 use std::fmt;
 impl fmt::Display for HEADER {
@@ -173,13 +176,9 @@ impl fmt::Display for HEADER {
 
 
 
-const NEWS_FILENAME: &str = "files/.news";
-const NEWS_TOKENS: &[&str] = &[
-    "MBrgJ15MF5jinC7KbgmZv7QhvtzRL4/Znr7R38PSH5k=", // anthony
-];
 
 use tokio::{
-    sync::Mutex,
+    sync::RwLock,
     io::AsyncWriteExt,
     fs::File,
 };
@@ -189,8 +188,10 @@ use chrono::{DateTime, Local, TimeZone};
 
 type News = Vec<(u64, Box<str>)>;
 
+const NEWS_FILENAME: &str = "files/.news";
+
 lazy_static::lazy_static! {
-    static ref NEWS: Mutex<News> = {
+    static ref NEWS: RwLock<News> = {
         let mut file = std::fs::File::open(NEWS_FILENAME).unwrap();
 
         let mut content = String::new();
@@ -201,7 +202,7 @@ lazy_static::lazy_static! {
 }
 
 impl NEWS {
-    fn from(input: &str) -> Mutex<News> {
+    fn from(input: &str) -> RwLock<News> {
         let news = input.lines().fold(Vec::new(), |mut acc, l| {
             let (date, msg) = l.split_once(',')
                 .expect("malformed config file");
@@ -212,7 +213,7 @@ impl NEWS {
             acc.push((date, Box::from(msg))); acc
         });
 
-        Mutex::new(news)
+        RwLock::new(news)
     }
 
     async fn add(&self, text: &str) -> tokio::io::Result<()> {
@@ -221,7 +222,7 @@ impl NEWS {
             .duration_since(UNIX_EPOCH)
             .unwrap().as_secs();
 
-        let mut news = self.lock().await;
+        let mut news = self.write().await;
         news.push((time, Box::from(text)));
         drop(news);
         
@@ -229,13 +230,66 @@ impl NEWS {
     }
 
     async fn save(&self) -> tokio::io::Result<()> {
-        let news = self.lock().await;
+        let news = self.read().await;
         let contents = news.iter().fold(String::new(), |mut acc, (t, m)| {
             acc.push_str(&format!("{},{}\n", t, m)); acc
         });
         drop(news);
         
         let mut file = File::create(NEWS_FILENAME).await?;
+        file.write_all(contents.as_bytes()).await?;
+
+        Ok(())
+    }
+}
+
+
+
+
+
+const MUSICS_FILENAME: &str = "files/.musics";
+type Musics = Vec<(Box<str>, Box<str>)>;
+lazy_static::lazy_static! {
+    static ref MUSICS: RwLock<Musics> = {
+        let mut file = std::fs::File::open(MUSICS_FILENAME).unwrap();
+
+        let mut content = String::new();
+        let _ = file.read_to_string(&mut content).unwrap();
+
+        MUSICS::from(&content)
+    };
+}
+
+impl MUSICS {
+    fn from(input: &str) -> RwLock<Musics> {
+        let news = input.lines().fold(Vec::new(), |mut acc, l| {
+            let line = l.split_once(',')
+                .expect("malformed config file");
+
+            acc.push((Box::from(line.0), Box::from(line.1))); acc
+        });
+
+        RwLock::new(news)
+    }
+    async fn add(&self, text: &str) -> tokio::io::Result<()> {
+        let line = text.split_once(',')
+            .expect("malformed config file");
+
+        let mut news = self.write().await;
+        news.push((Box::from(line.0), Box::from(line.1)));
+        drop(news);
+        
+        self.save().await
+    }
+
+    async fn save(&self) -> tokio::io::Result<()> {
+        let news = self.read().await;
+        let contents = news.iter().fold(String::new(), |mut acc, (n, l)| {
+            acc.push_str(&format!("{n},{l}\n")); acc
+        });
+        drop(news);
+        
+        let mut file = File::create(MUSICS_FILENAME).await?;
         file.write_all(contents.as_bytes()).await?;
 
         Ok(())
@@ -269,7 +323,7 @@ format!(r#"
 
 [allow(unused_variables)]
 pub async fn index(uri: &str, args: HashMap<&str, String>, headers: HeaderMap<HeaderValue>, body: Bytes) -> impl crate::IntoResponse {
-let news = NEWS.lock().await;
+let news = NEWS.read().await;
 let news = news.last().unwrap();
 
 let news_time = Local.timestamp_opt(news.0 as i64, 0)
@@ -303,7 +357,7 @@ format!(r#"
 
         <p>If you want to contact me, here are a few ways:</p>
         <div class="indent">
-            <p>- <r>email:</r> <i>ant@slb.sh</i></p>
+            <p>- <r>email:</r> <i>ant@slb.sh</i> (not up yet)</p>
             <p>- <r>discord:</r> <i>anthonyslab</i></p>
         </div>
         <p>Oh and by the way, if you've got any cool projects of your own, suggestions for this site, or anything else really,
@@ -462,7 +516,38 @@ format!(r#"
 
 [allow(unused_variables)]
 pub async fn rocks(uri: &str, args: HashMap<&str, String>, headers: HeaderMap<HeaderValue>, body: Bytes) -> impl crate::IntoResponse {
-format!(r#"
+if let Some(token) = args.get("t") {
+    let token: &str = &token;
+    if !TOKENS.contains(&token) {
+        return crate::Res(String::from("Invalid Token.. nice try :p"), StatusCode::UNAUTHORIZED);
+    }
+
+    if body.is_empty() {
+        return crate::Res(String::from("Empty Body"), StatusCode::BAD_REQUEST);
+    }
+
+    let body = String::from_utf8_lossy(&body);
+    MUSICS.add(&body).await.unwrap();
+
+    return crate::Res(String::new(), StatusCode::OK);
+}
+
+let musics = MUSICS.read().await;
+
+use rand::seq::SliceRandom;
+if args.contains_key("r") {
+    let (_, link) = musics.choose(&mut rand::thread_rng()).unwrap();
+    return crate::Res(link.to_string(), StatusCode::OK);
+}
+
+use std::fmt::Write;
+let (list, _) = musics.iter().fold((String::new(), 0_u8), |mut acc, (n, l)| {
+    acc.1 += 1;
+    let _ = writeln!(acc.0, "<p>{:02x}. <a href=\"{l}\">{n}</a></p>", acc.1);
+    acc
+});
+
+crate::Res(format!(r#"
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -481,46 +566,6 @@ format!(r#"
         <p>Stuff that rocks!</p>
     </div>
     <div class=text>
-        <h2>Music</h2>
-        <p>(Most are bandcamp links)</p>
-        <div class=indent>
-            <p>01. <a href="https://autonoesis.bandcamp.com/album/moon-of-foul-magics">Autonoesis - Moon of Foul Magics</a></p>
-            <p>02. <a href="https://eosphoroscult.bandcamp.com/album/ii">Eosphoros - II</a></p>
-            <p>03. <a href="https://mephorash.bandcamp.com/album/shem-ha-mephorash">Mephorash - Shem Ha Mephorash</a></p>
-            <p>04. <a href="https://catacombesbl.bandcamp.com/album/des-glaires-et-des-briques">Catacombes - Des Des Glaires et des Briques</a></p>
-            <p>05. <a href="https://gevurah.bandcamp.com/album/gehinnom">GEVURAH - Gehinnom</a></p>
-            <p>06. <a href="https://tristetage.bandcamp.com/album/herbst-2022-ep">Triste Tage - Herbst 2022 EP</a></p>
-            <p>07. <a href="https://malignantvoices.bandcamp.com/album/gloom-ash-and-emptiness-to-the-horizon">Ashes - Gloom Ash and Emptiness to the Horizon</a></p>
-            <p>08. <a href="https://sevengill.bandcamp.com/album/sea">Sevengill - Sea</a></p>
-            <p>09. <a href="https://seawitchdoom.bandcamp.com/album/the-blackened-sea">Sea Witch - The Blackened Sea</a></p>
-            <p>0a. <a href="https://wyndbrln.bandcamp.com/album/wynd">WYND - WYND</a></p>
-            <p>0b. <a href="https://omenstones.bandcamp.com/album/omen-stones-2">Omen Stones - Omen Stones</a></p>
-            <p>0c. <a href="https://oprichnik.bandcamp.com/album/the-abyss-of-solitude">Oprichnik - The Abyss of Solitude</a></p>
-            <p>0d. <a href="https://watainsom.bandcamp.com/album/sworn-to-the-dark">Watain - Sworn to the Dark</a></p>
-            <p>0e. <a href="https://thurnin.bandcamp.com/album/menhir">Thurnin - Menhir</a></p>
-            <p>0f. <a href="https://aawks.bandcamp.com/album/heavy-on-the-cosmic">AWWKS - Heavy on the Cosmic</a></p>
-            <p>10. <a href="https://hazeshuttle.bandcamp.com/album/hazeshuttle">Hazeshuttle - Hazeshuttle</a></p>
-            <p>11. <a href="https://dozerofficial.bandcamp.com/album/drifting-in-the-endless-void">Dozer - Drifting in the Endless Void</a></p>
-            <p>12. <a href="https://ripplemusic.bandcamp.com/album/bury-the-hatchet-2">Shotgun Sawyer - Bury the Hatchet</a></p>
-            <p>13. <a href="https://demiser.bandcamp.com/album/through-the-gate-eternal">Demiser - Through the Gate Eternal</a></p>
-            <p>14. <a href="https://relapsealumni.bandcamp.com/album/death-is-this-communion">High on Fire - Death is This Communion</a></p>
-            <p>15. <a href="https://patriciadallio.bandcamp.com/album/lencre-des-voix-secretes">Patricia Dallio - L'ENCRE DES VOIX SECRETES</a></p>
-            <p>16. <a href="https://thierryzaboitzeff.bandcamp.com/album/prom-th-e-artists-edition">Thierry Zaboitzeff - Prométhée - Artist's edition</a></p>
-            <p>17. <a href="https://blackwoodsband.bandcamp.com/album/landscapes">Black Woods - Landscapes</a></p>
-            <p>18. <a href="https://xasthurband.bandcamp.com/album/defective-epitaph">Zasthur - Defective Epitaph</a></p>
-            <p>19. <a href="https://satanath.bandcamp.com/album/sat365-septory-rotting-humanity-compilation-2023">Septory - Rotting Humanity</a></p>
-            <p>1a. <a href="https://rustblackthrash.bandcamp.com/album/raw-shredding-death">Rust - Raw Shredding Death</a></p>
-            <p>1b. <a href="https://lowriderofficial.bandcamp.com/album/refractions">Lowrider - Refractions</a></p>
-            <p>1c. <a href="https://khonsu.bandcamp.com/album/the-xun-protectorate">Khonsu - The Xun Protectorate</a></p>
-            <p>1d. <a href="https://primordialofficial.bandcamp.com/album/spirit-the-earth-aflame">Primordial - Spirit the Earth Aflame</a></p>
-            <p>1e. <a href="https://ebonypendant.bandcamp.com/album/incantation-of-eschatological-mysticism">Ebony Pendant - Incantation Of Eschatological Mysticism</a></p>
-            <p>1f. <a href="https://ebonypendant.bandcamp.com/album/garden-of-strangling-roots">Ebony Pendant - Garden Of Strangling Roots</a></p>
-            <p>20. <a href="https://madeofstonerecordings.bandcamp.com/album/tortuga-deities">Tortuga - Deities</a></p>
-            <p>21. <a href="https://thegraviators.bandcamp.com/album/motherload">The Graviators - Motherload</a></p>
-            <p>22. <a href="https://gololedx.bandcamp.com/album/go-oled">Gołoledź - Gołoledź</a></p>
-            <p>23. <a href="https://copperage.bandcamp.com/album/buerismo">Copper Age - Buerismo</a></p>
-        </div>
-
         <h2>Software</h2>
         <div class=indent>
             <p>01. <a href="http://eradman.com/entrproject/">entr:</a> Runs any command whenever a chosen file changes. Useful for recompiling and running a project whenever you update the source.</p>
@@ -530,7 +575,26 @@ format!(r#"
             <p>05. <a href="https://typst.app/">typst:</a> Markup-based typesetting system, like LaTeX but much cleaner, elegant, and easier to learn.</p>
             <!-- <p>06. <a href=""></a> <p> -->
         </div>
+
+        <h2>Fonts</h2>
+        <div class=indent>
+            <p>01. <a href="https://fsd.it/shop/fonts/pragmatapro/">PragmataPro:</a> This is my daily driver for all termial windows, 
+            it's quite condensed and yet even more readable than fonts like <c>Hack</c> or <c>Fira Code</c>.
+            Only drawback is that it's sold for an absolutely exorbitant sum (200€), creator must've been dropped on the head as a child or idk.
+            Luckly there's a <i>very</i> similar open source font <a href="https://github.com/shytikov/pragmasevka">Pragmasevka</a>. The latter is used <c>on this website as code blocks</c>.</p>
+            <p>02. <a href="https://fonts.adobe.com/fonts/adhesive-nr-seven">Adhesive Nr. Seven</a> Modern Blackletter, created using torn adhesive tape. Great for banners, titles, and posters.</p>
+            <p>03. <a href="https://b.agaric.net/page/agave">agave:</a> A very smooth and round font, Looks good from distance and provides great rendering for scientific symbols. 
+            Unfortunately <a href="https://github.com/blobject/agave">the last commit</a> was 4 years ago and I dont think it's gonna get any active maintenance any time soon.</p>
+            <p>04. <a href="https://github.com/subframe7536/maple-font">Maple:</a> A monospaced coding font with some handwritten aesthetics. Not my personal favorite, but it def earns its place for its uniqueness.</p>
+        </div>
+
+        <h2>Music</h2>
+        <p>Request this url with the <c>?r</c> tag to get a random link from below. Use it like this for even more fun: <br><c>curl "http://slb.sh/rocks?r" | yt-dlp -o - -a - | mpv -</c></p>
+        <p>If you want an album added to this list feel free to send me recommendations!</p>
+        <div class=indent>
+            {list}
+        </div>
     </div>
 </body>
-"#)
+"#), StatusCode::OK)
 }

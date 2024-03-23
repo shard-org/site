@@ -63,7 +63,7 @@ fn do_thing() -> Result<(), Error> {
         }
 
         match_lines.push_str(&format!("\"{}\" => funcs::{}(uri, args, parts.headers, body).await.into_response(),\n", path, ident));
-        funcs.push_str(&format!("#\n\n[allow(unused_variables)]\npub async fn {}(uri: &str, args: HashMap<&str, Cow<'_, str>>, headers: HeaderMap<HeaderValue>, body: Bytes) -> impl crate::IntoResponse {{\n", ident));
+        funcs.push_str(&format!("#\n\n[allow(unused_variables)]\npub async fn {}(uri: &str, args: HashMap<&str, String>, headers: HeaderMap<HeaderValue>, body: Bytes) -> impl crate::IntoResponse {{\n", ident));
 
         let mut file = fs::File::open(Into::<String>::into(file))?;
         file.read_to_string(&mut funcs)?;
