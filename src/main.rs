@@ -50,6 +50,11 @@ fn main() {
 
     let scope = Router::new()
 /* ##FUNC_START## */
+.add_route("/community", Get(|c: Query<CacheLen>, f: Query<Files>| get_file(c, f, Url("/_community.html"))))
+.add_route("/doc/",(Get(funcs::doc_::get)))
+.add_route("/doc/*",(Get(funcs::doc_::get)))
+.add_route("/", Get(|c: Query<CacheLen>, f: Query<Files>| get_file(c, f, Url("/_index.html"))))
+.add_route("/projects", Get(|c: Query<CacheLen>, f: Query<Files>| get_file(c, f, Url("/_projects.html"))))
 
 /* ##FUNC_END## */
         .add_route("/*", Get(get_file))

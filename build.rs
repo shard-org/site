@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::Path;
 use std::io::{
     Write, BufRead, BufReader, BufWriter
 };
@@ -103,6 +104,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut mod_file_lines = String::new();
 
     for (ident, contents) in funcs {
+        if !Path::new(FUNCS_DIR).exists() {
+           fs::create_dir_all(FUNCS_DIR)?
+        }
+
         let path = format!("{FUNCS_DIR}{ident}.rs");
         let contents = String::from(IMPORTS) + &contents;
         write_to_file(&path, contents)?;
