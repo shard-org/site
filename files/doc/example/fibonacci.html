@@ -1,0 +1,22 @@
+<h2 class=nopad>Fibonacci</h2>
+Here we're telling the linker to link <c>libc</c>.<br><br>
+<code><pre>
+:arch x86_64 linux
+:linker #LINKER -lc
+
+fibonacci n 2 -&gt; 2 {
+   (n &lt;= 1): ret n
+   ret !fibonacci (n - 1) + !fibonacci (n - 2)
+}
+
+entry:
+   %terms 2
+   $scanf "%d", terms
+
+   %i 2
+   loop (i &lt; terms) =&gt; {'i ++} {
+      !fibonacci i =&gt;&gt; $printf "%d\n"
+   }
+
+   ret
+</pre></code>

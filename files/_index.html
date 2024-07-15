@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+   <meta charset=UTF-8>
+   <link rel=stylesheet type="text/css" href="/styles/styles.css">
+   <link rel=icon href="data:,">
+   <title>Shard</title>
+</head>
+
+<body>
+   <header class=center style="margin-top: 15px;">
+      <nav>
+         <a href="/doc/guide/getting-started">Get Started</a>
+         <a href="/doc">Documentation</a>
+         <a href="/projects">Projects</a>
+         <a href="/blog">Blog</a>
+         <a href="/community">Community</a>
+      </nav>
+   </header>
+
+   <div class=text>
+      <b style="font-size:1.2em">Shard</b> - "The OSR of programming languages"
+
+      <h2>Premise</h2>
+      <p>Flexible, assembly-adjacent language geared towards compile target flexibility, ease of use, and direct control.</p>
+      <p>No implicit assumptions, everything must be explicitly declared.</p>
+
+      <h2>Features</h2>
+      <div class=block>
+         <p>- Fine grained low level access to hardware features, like registers, syscalls, and interrupts.</p>
+         <p>- No <i>"Safety Features"</i> preventing you from doing what you want. Nor stupid stuff. (not mutually exclusive)</p>
+         <p>- Terse, yet <s>probably</s> clear and concise syntax.</p>
+         <p>- Architecture details are defined within the standard library, meaning adding support for additional ones doesn't
+              require modifying any compiler source code, and can by done by the user. As long as there's a compatible assembler, of course.</p>
+         <p>- Shark mascot! Which <i>someone</i> (not pointing fingers, however their name might begin with "j" and end with "esse") hasn't drawn yet :/
+      </div>
+
+      <h2>Non-Features</h2>
+      <div class=block>
+         <p>- Shard is neither meant to be cross-platform, nor an IR. All architectures are inherently dissimilar,
+         reconsiling them into one cannot be done without compromises </p>
+         <p>- Planned optimization level is low if not none. If you want to write crazy fast code go use one of these instead: 
+            <a href="https://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html">C</a>,
+            <a href="https://www.rust-lang.org/">Rust</a>,
+            <a href="https://ziglang.org/">Zig</a>
+         </p>
+         <p>- Standard library is only for defining the architecture, and writing base wrappers and helpers. You wont find anything over the <i>bare minimum</i>
+            Use <a href="https://musl.libc.org/">libc</a> if you want an expansive standard library.</p>
+      </div>
+
+      <h2>Novelties</h2>
+      <div class=block>
+         <p>- Type Casting Operators: What began as <b>Shard</b>'s answer to float and signed math, has now become one of the core concepts of the type system. 
+              This now allows for behaviours similar to <i>methods</i> and <i>generic types</i> in other languages, with practically none of the heavy lifting!</p>
+         <p>- Self Contained Projects: No need for 20 separate files with layers of build scripts and manifest files.
+              <b>Shard</b> files can contain build scripts, project definitions, packaging/version info on their own through the <i>Tag</i> system!</p>
+         
+      </div>
+   </div>
+
+   <div class=center style="height:15px; padding-top:10px">
+      <p style="font-size:0.85em">CC0 Public Domain 2024 Shard Team</p>
+   </div>
+</body>
+</html>
+

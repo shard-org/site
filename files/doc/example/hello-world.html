@@ -1,0 +1,9 @@
+<h2 class=nopad>Hello World</h2>
+We're using the linux <c>write</c> syscall directly here<br><br>
+<code><pre>
+:arch x86_64 linux
+
+entry:
+  *write 1, "Hello, World!", 13
+  ret
+</pre></code>

@@ -1,0 +1,142 @@
+labels are defined as a pointer to wherever they're placed in the final binary.<br>
+All statics, constants, functions, loops, etc are essentially labels.<br><br>
+
+They begin with an identifier and end with <c>:</c><br>
+eg: <c>main:</c><br><br>
+
+Labels may also be anonymous, meaning they dont require to have a specific name. <br>
+This can be used for a simple way to optain loops, match statements, or conditionals. <br><br>
+
+if the label ends with the <c>()</c> or <c>{}</c> attribute, the leading <c>:</c> may be ommited. <br>
+
+
+<h2>Calls and Returns</h2>
+   Calling an address pushes the current IP to the stack,<br>
+   later whenever returning a word is popped from the stack and IP set to the value
+ <br><br>
+
+   use the <c>!</c> symbol to call an adress and the <c>ret</c> keyword to return, possibly with a value.<br>
+   eg: <c>!print_hello</c>, <c>!0xdeadbeef</c><br>
+   eg: <c>ret</c>, <c>ret 20</c><br><br>
+
+   For external functions (ones not defined within the shard source) use the <c>$</c> operator,<br>
+   syntactically identical to <c>!</c>, but doesnt provide any type checking, and is handled by the linker. <br><br>
+
+   You may also jump directly to an adress using the <c>jmp</c> instruction. <br>
+   This however, does not allow you to return to the point you jumped from. <br>
+   eg: <c>jmp some_func</c>, <c>jmp 0xdeadbeef</c><br>
+
+
+<h2>Attributes</h2>
+   these are inserted after the identifier of a function/label. <br><br>
+
+   Each attribute may also include a trailing comma. <br>
+   This bares no functional difference, short of possibly better readability. <br><br>
+
+   eg: <c>main entry:</c> entry here is an attribute. <br><br>
+     
+   <div class="block quote">
+      <b>entry</b><br>
+      The program's entry point. Exclusive to one label.
+   </div>
+
+   <div class="block quote">
+      <b>{}</b> - body<br>
+      A scope containing any number of statemenets.
+   </div>
+
+   <div class="block quote">
+      <b>@</b> - at<br>
+      Takes the next value. If its a literal use as the address of that label,<br>
+      if value starts with <c>.</c> treat it as a binary section, like <c>.rodata</c><br>
+      eg: <c>STATIC_VAR @ .data [1]: "Hello, World!"</c>
+   </div>
+   
+   <div class="block quote">
+      <b>()</b> - condition<br>
+      Run label if condition is met, otherwise ignore. <br>
+      The condition is pre-checked for jumps, as it's impossible to figure out where to return after one. <br>
+      eg: <c>(var = 20) $puts "var is 20"</c>
+   </div>
+   
+   <div class="block quote">
+      <b>loop</b><br>
+      Requires <i>body</i>. <br>
+      Jump to itself at the end of scope. 
+   </div>
+
+   <div class="block quote">
+      <b>def</b><br>
+      Defines a following expr as an anonymous macro <c>#</c>. <br>
+      eg:<br>
+<code><pre>
+do_thing def 20 {  
+    $printf "%d", #
+}                  
+</pre></code>
+   </div>
+
+   <div class="block quote">
+      <b>||</b><br>
+      Requires <i>body</i>. <br>
+      Applies all attributes between the <c>||</c> to all labels in the following scope. <br>
+      eg:<br>
+<code><pre>
+|@ .rodata| {       
+    CONST1: 8       
+    CONST2: 97      
+    CONST3: "Hi Mom"
+}                   
+</pre></code>
+   </div>
+
+   <div class="block quote">
+      <b>asm</b><br>
+      Requires <i>body</i>. <br>
+      <s>We're actually debating this as it's a label block with custom syntax</s>
+      Raw assembly, pasted into the generated output.<br>
+      eg:<br>
+<code><pre>
+asm {
+   mov $0, %rax
+}
+</pre></code>
+   </div>
+
+   <div class="block quote">
+      <b>=&gt;</b> - then<br>
+      Requires <i>body</i>. <br>
+      Expects a following value. <br>
+      Executes that following block after current function returns. <br>
+      In case of the <c>loop</c> attr this is done before the final jump<br>
+      eg: <br>
+<code><pre>
+%i 4                     
+loop (i &lt; 10) =&gt; {'i ++}:
+    $printf "%d", i      
+</pre></code>
+   </div>
+
+   <div class="block quote">
+      <b>arg</b><br>
+      Make the label require an argument of that type when called. <br>
+      The argument will then be assigned to an identifier, by default stack allocated,<br>
+      if the type is a register instead register allocated. <br>
+      eg: <c>TYPE IDENT</c>, <c>add 4 a, 4 b:</c>
+   </div>
+
+   <div class="block quote">
+      <b>-&gt;</b> - return<br>
+      Mark the label as returning a value of TYPE.
+      Allowing `ret` to accept an argument. <br>
+      eg: <c>-&gt; TYPE</c>, <c>ten -&gt; 1: ret 10</c>
+   </div>
+
+   The argument and return types act more as hints and convenience attributes<br>
+   to the compiler and user, rather than as concerete rules. <br>
+   It is possible to return values from a function that doesnt <i>state</i> it returns them,<br>
+   or jump to a label with arguments it never intended to have. <br><br>
+
+   This shows up as a compiler warning, as it's unstable and potentially the source of many bugs. <br>
+   However as all compiler warnings it can be disabled
+     

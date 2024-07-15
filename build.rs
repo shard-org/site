@@ -1,89 +1,160 @@
 use std::fs;
 use std::io::{
-    Read, Write, BufRead, BufReader, BufWriter
+    Write, BufRead, BufReader, BufWriter
 };
-
-type Error = Box<dyn std::error::Error>;
-
-const IMPORTS: &str = 
-"
-#![allow(unused_imports)]
-use hyper::{
-    HeaderMap,
-    header::HeaderValue,
-    body::Bytes,
-    Request, Response, StatusCode,
-};
-use std::borrow::Cow;
+use std::fmt::Write as FmtWrite;
 use std::collections::HashMap;
-use crate::Error;
-";
 
-fn main() {
-    if let Err(e) = do_thing() {
-        println!("\x1b[33;1mBUILD ERR:\x1b[0m {}", e);
-        std::process::exit(1)
+const IMPORTS: &str = "#![allow(unused_imports)] use crate::*;use crate::funcs::*;\n";
+
+const FUNCS_DIR: &str = "src/funcs/";
+const PROJECT_DIR: &str = "files";
+
+enum Method {
+    Get,
+    Post,
+}
+
+use std::fmt;
+impl fmt::Display for Method {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use Method::*;
+        let out = match self {
+            Get => "Get",
+            Post => "Post",
+        };
+        write!(f, "{out}")
     }
 }
 
-const MAIN_FILE: &str = "src/main.rs";
-const FUNCS_FILE: &str = "src/funcs.rs";
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let files = get_files(PROJECT_DIR);
 
-const MATCH_START_KEYWORD: &str = "/* ##FUNC_MATCH_START## */";
-const MATCH_END_KEYWORD: &str = "/* ##FUNC_MATCH_END## */";
+    let mut routes = String::new();
+    let mut funcs: HashMap<String, String> = HashMap::new(); //ident, contents
 
-const FUNC_DIR: &str = "files";
-
-fn do_thing() -> Result<(), Error> {
-    let files = get_files(FUNC_DIR);
-    println!("{:#?}", files);
-    
-    let mut match_lines = String::new();
-    let mut funcs = String::from(IMPORTS);
-    
     for file in files {
-        let path = file.strip_prefix(FUNC_DIR).unwrap();
+        let path = file.strip_prefix(PROJECT_DIR).unwrap();
 
-        // if ident.contains('_') {
-        //     return Err("`_` in func ident not allowed".into());
-        // }
+        if let Some(path) = path.strip_suffix(".rs") {
+            let ident = path.strip_prefix('/').unwrap();
+            let mut path = String::from(path);
 
-        let mut path = path.strip_suffix(".rs").unwrap();
-        let ident = path.strip_prefix('/').unwrap().replace('/', "_");
+            let content = std::fs::read_to_string(file.as_ref())?;
 
-        if ident == "index" {
-            path = "/";
-        }
+            if ident == ".internal" {
+                funcs.insert(String::from("internal"), content);
+                continue;
+            }
 
-        // dont make it a response func if its internal
-        if ident == ".internal" {
-            let mut file = fs::File::open(Into::<String>::into(file))?;
-            file.read_to_string(&mut funcs)?;
+            if ident == "index" {
+                path = String::from("/");
+            }
+
+            let methods = get_funcs(&content); 
+
+            if let Some(new_path) = path.strip_suffix("_") {
+                path = format!("{new_path}/*");
+                let path = path.strip_suffix("*").unwrap();
+                if !methods.is_empty() {
+                    let mut route_str = methods.iter()
+                        .fold(format!(".add_route(\"{path}\",("), |mut acc, m| {
+                            acc.push_str(&format!("{m}(funcs::{ident}::{}),", m.to_string().to_lowercase())); acc
+                        });
+
+                    if route_str.ends_with(",") {
+                        route_str.pop();
+                    }
+                    route_str.push_str("))\n");
+                    routes.push_str(&route_str);
+                }
+            }
+            
+            if !methods.is_empty() {
+                let mut route_str = methods.iter()
+                    .fold(format!(".add_route(\"{path}\",("), |mut acc, m| {
+                        acc.push_str(&format!("{m}(funcs::{ident}::{}),", m.to_string().to_lowercase())); acc
+                    });
+
+                if route_str.ends_with(",") {
+                    route_str.pop();
+                }
+                route_str.push_str("))\n");
+                routes.push_str(&route_str);
+            }
+
+            funcs.insert(String::from(ident), content);
             continue;
         }
 
-        match_lines.push_str(&format!("\"{}\" => funcs::{}(uri, args, parts.headers, body).await.into_response(),\n", path, ident));
-        funcs.push_str(&format!("#\n\n[allow(unused_variables)]\npub async fn {}(uri: &str, args: HashMap<&str, String>, headers: HeaderMap<HeaderValue>, body: Bytes) -> impl crate::IntoResponse {{\n", ident));
+        if let Some(ident) = path.strip_prefix("/_") {
+            let (mut ident, _) = ident.split_once('.').unwrap_or((ident, ""));
+            
+            if ident == "index" {
+                ident = "";
+            }
 
-        let mut file = fs::File::open(Into::<String>::into(file))?;
-        file.read_to_string(&mut funcs)?;
-
-        funcs.push_str("}\n");
+            routes.push_str(&format!(".add_route(\"/{ident}\", Get(|c: Query<CacheLen>, f: Query<Files>| get_file(c, f, Url(\"{path}\"))))\n", ))
+        }
     }
 
-    let mut funcs_file = fs::File::create(FUNCS_FILE)?;
-    funcs_file.write_all(funcs.as_bytes())?;
-    drop(funcs_file);
+    replace_lines(routes, "src/main.rs", "/* ##FUNC_START## */", "/* ##FUNC_END## */")?;
 
+    let mut mod_file_lines = String::new();
 
-    replace_lines(match_lines, MATCH_START_KEYWORD, MATCH_END_KEYWORD)?;
+    for (ident, contents) in funcs {
+        let path = format!("{FUNCS_DIR}{ident}.rs");
+        let contents = String::from(IMPORTS) + &contents;
+        write_to_file(&path, contents)?;
+        writeln!(mod_file_lines, "pub mod {ident};")?;
+    }
+
+    write_to_file("src/funcs/mod.rs", mod_file_lines)?;
 
     Ok(())
 }
 
+fn get_files(dir_path: &str) -> Vec<Box<str>> {
+    let mut out = Vec::new();
 
-fn replace_lines(new_lines: String, start: &str, end: &str) -> Result<(), Error> {
-    let file = fs::File::open(MAIN_FILE)?;
+    for entry in walkdir::WalkDir::new(dir_path).into_iter().filter_map(|e| e.ok()) {
+        if !entry.file_type().is_file() { continue; }
+
+        let filename = entry.path().display().to_string();
+        // if !filename.ends_with(".rs") { continue; }
+
+        out.push(Box::from(filename));
+    }
+    out
+}
+
+fn get_funcs(contents: &str) -> Vec<Method> {
+    let mut out = Vec::new();
+    let Ok(file) = syn::parse_file(contents) else {
+        return out;
+    };
+
+    for item in &file.items {
+        if let syn::Item::Fn(f) = item {
+            use Method::*;
+            out.push(match f.sig.ident.to_string().as_str() {
+                "get" => Get,
+                "post" => Post,
+                _ => continue,
+            });
+        }
+    }
+    out
+}
+
+fn write_to_file(name: &str, contents: String) -> std::io::Result<()> {
+    let mut funcs_file = fs::File::create(name)?;
+    funcs_file.write_all(contents.as_bytes())?;
+    Ok(())
+}
+
+fn replace_lines(new_lines: String, name: &str, start: &str, end: &str) -> std::io::Result<()> {
+    let file = fs::File::open(name)?;
     let reader = BufReader::new(file);
 
     let mut lines_before_start = Vec::new();
@@ -109,7 +180,7 @@ fn replace_lines(new_lines: String, start: &str, end: &str) -> Result<(), Error>
         }
     }
 
-    let file = fs::File::create(MAIN_FILE)?;
+    let file = fs::File::create(name)?;
     let mut writer = BufWriter::new(file);
 
     for l in lines_before_start {
@@ -125,16 +196,3 @@ fn replace_lines(new_lines: String, start: &str, end: &str) -> Result<(), Error>
     Ok(())
 }
 
-fn get_files(dir_path: &str) -> Vec<Box<str>> {
-    let mut out = Vec::new();
-
-    for entry in walkdir::WalkDir::new(dir_path).into_iter().filter_map(|e| e.ok()) {
-        if !entry.file_type().is_file() { continue; }
-
-        let filename = entry.path().display().to_string();
-        if !filename.ends_with(".rs") { continue; }
-
-        out.push(Box::from(filename));
-    }
-    out
-}

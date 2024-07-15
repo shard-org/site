@@ -1,0 +1,59 @@
+<h2 style="margin-top:0;padding-top:0">Stack</h2>
+<c>%</c> allocates a variable on the stack. Returning a transparent pointer. <br>
+Type must be known at the point of allocation.<br>
+eg: <c>%IDENT = EXPR</c>, <c>%var 4 = 35</c>, <c>%var = "hello"</c><br><br>
+
+You may also directly insert data to the stack without associating a value with it using the <c>^</c> operator.<br>
+As with variable allocation the type is again required. <br>
+eg: <c>^VALUE TYPE</c>, <c>^8 1</c><br><br>
+
+Similarly it's possible to use the <c>_</c> operator to pop values from the stack.<br>
+This evaluates to a value which can be assigned. Arg may be a type or ident.<br>
+eg: <c>_VALUE</c>, <c>_8</c>, <c>_var</c><br><br>
+
+<c>_</c> may be commonly used for moving a value, instead of copying (which is the default).<br>
+<code><pre>
+%int = 20
+%new_int = _int + 20
+
+// `int` isn't accessible anymore
+// `new_int` has the value of `40`
+</pre></code>
+
+
+<h2>Registers</h2>
+Use <c>;</c> to alias a register to a variable name, setting its value in the process.<br>
+eg: <c>;IDENT REGISTER = EXPR</c>, <c>;twenty r0 = 20</c>
+
+
+<h2>Pointers and Indexing</h2>
+Any expression wrapped in <c>[]</c> is dereferenced.<br>
+eg: <c>[EXPR]</c>, <c>[0xdeadbeef]</c>, <c>[8 + 5 * !func]</c><br><br>
+
+To index a heap use the <c>.</c> operator, returns a transparent pointer,<br>
+with an offset of Index * Element Size.<br>
+eg: <c>EXPR.EXPR</c>, <c>some_array.0</c>, <c>string.i</c><br><br>
+
+Indexes starts from 0 (as god intended).<br>
+
+Structs are indexed by field, field names being specific byte offsets.<br>
+Returns a transparent pointer.
+eg: <c>EXPR-&gt;EXPR</c>, <c>my_struc-&gt;foo</c><br><br>
+
+This syntax may also accept any integer offset.<br>
+eg: <c>my_struc-&gt;8</c>
+
+
+<h2>Transparent Pointers</h2>
+<i>Transparent</i> meaning they are automatically dereferenced when called,<br>
+Behaving like the referenced value in most default cases.<br>
+Allocating variables on the stack for example returns a transparent pointer.<br><br>
+
+This isnt a <i>real</i> type, and only exists transiently, <br>
+aliasing to a pointer when dereferenced<br>
+eg: <c>[array.5 + 4]</c><br><br>
+
+In the above example <c>array.5</c> returns a transparent pointer, but as it's within a deref block, 
+it functions as the actual pointer, rather than value.
+
+

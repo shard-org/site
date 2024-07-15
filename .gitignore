@@ -1,3 +1,2 @@
 /target
-/files/*
-/src/files.rs
+/src/funcs/*

@@ -1,0 +1,10 @@
+<h2 class=nopad>Python?!</h2>
+(This is a joke btw, dont do this :&gt;)<br>
+This script runs the <c>python</c> interpreter on the current file, excluding the first lines.<br><br>
+<code><pre>
+:verb DEFAULT {
+   tail +4 #FILE | python
+}
+
+print("Hello, World!")
+</pre></code>

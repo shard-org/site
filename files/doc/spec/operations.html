@@ -1,0 +1,56 @@
+<h2 style="margin-top:0;padding-top:0">Math Operators</h2>
+<ul>
+    <li>*    &nbsp;- Multiplication</li>
+    <li>/    &nbsp;- Division</li>
+    <li>%    &nbsp;- Modulo</li>
+    <li>-    &nbsp;- Subtraction</li>
+    <li>+    &nbsp;- Addition</li>
+    <li>&gt;&gt;   - Right shift</li>
+    <li>&lt;&lt;   - Left shift</li>
+    <li>&lt;=      - Less than equal</li>
+    <li>&gt;=      - Greater than equal</li>
+    <li>&lt; &nbsp;- Less than</li>
+    <li>&gt; &nbsp;- Greater than</li>
+    <li>=    &nbsp;- Equal</li>
+    <li>~=         - Not equal</li>
+    <li>&&         - AND</li>
+    <li>^^         - XOR</li>
+    <li>||         - OR</li>
+    <li>~    &nbsp;- NOT</li>
+    <li>:    &nbsp;- Swap</li>
+    <li>++         - Increment</li>
+    <li>--         - Decrement</li>
+</ul>
+
+<h2>Mutation</h2>
+   To change a value in-place use the <c>'</c> operator. <br>
+   It accepts an ident, operator, and optionally another ident (for binary operations)<br>
+   eg: <c>'IDENT OP ?EXPR</c>, <c>'counter ++</c>, <c>'var * 2</c><br><br>
+
+   Whenever a binary op is used and the second value is missing,<br>
+   both of the arguments for that op will become the value. <br>
+   eg: <c>'var +</c>
+
+
+<h2>Special Operators</h2>
+   <div class="block quote">
+      <b>=&gt;</b><br>
+      Used for basically <i>piping</i> the return of one expr as the <i>first</i> argument of the following expr<br>
+      eg:<br>
+<code><pre>
+!add 2, 4
+   =&gt; !print_int
+</pre></code>
+   </div>
+
+   <div class="block quote">
+      <b>=&gt;&gt;</b><br>
+      Same as before, but instead it inserts the return as the <i>last</i> argument<br>
+      eg: <c>!multiply 3, 8 =&gt;&gt; $printf "%d"</c>
+   </div>
+
+   <div class="block quote">
+      <b>?</b> - size of<br>
+      Returns the compile time size of the element.<br>
+      eg: <c>?[] = 8</c>, <c>?9090 = 2</c>
+   </div>

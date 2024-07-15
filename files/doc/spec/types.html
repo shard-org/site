@@ -1,0 +1,71 @@
+<h2 style="margin-top:0;padding-top:0">Basic</h2>
+   <div class="block quote">
+      <b>Sizes:</b><br>
+       A number of bytes continuous in memory.<br>
+       ie. Intagers, Floats.<br>
+       eg: <c>1</c>, <c>8</c>, <c>98</c>
+   </div>
+
+   <div class="block quote">
+      <b>Registers:</b><br>
+      Registers in shard can function both as a type and an identifier.<br>
+      When used as a type the ident must be prefixed with a semicolon <c>;</c>.<br>
+      You may also prefix the <c>;REG</c> with a type, "binding" said type to the register.<br>
+      WARN on attempting to rebind or move given register within current scope.<br>
+      eg: <c>;r0</c>, <c>;r9999999</c>, <c>[1];r0</c>, <c>8;r12</c>
+   </div>
+
+   <div class="block quote">
+      <b>Heaps:</b><br>
+      A <i>heap</i> in <b>Shard</b> is any kind of continuous memory.<br>
+      ie. Arrays, Tuples, Strings, and Structs.<br>
+      It's by definition a <i>composite</i> type, holding metadata for multiple types.<br>
+      Each type in a heap may also have a <c>:</c> seprated number of elements (may be undefined).<br>
+      A <i>raw</i> heap (which has to have a known size) is wrapped in <c>{}</c>, <br>
+      while a pointer to one is wrapped in <c>[]</c>.<br>
+      eg: <c>{1:32}</c>, <c>[1:]</c> <c>{4 [1:] 8}</c>
+   </div>
+
+   <div class="block quote">
+      <b>Structs:</b><br>
+      A type alias for a named <i>heap</i> with namespaced labels (fields).<br>
+      eg: <c>Node</c>, <c>Position</c>
+   </div>
+
+
+<h2>Type Casting</h2>
+All operators in <b>Shard</b> have to have a type assigned to them.<br>
+The type is usually infered based on the leading value.<br>
+eg: <c>%var = "shard!" &nbsp;// type here is [1:]</c><br><br>
+
+In most cases values already have types assigned to them,<br>
+but in some (like extern function calls) it must be explicitly declared.<br>
+eg: <c>%var 4 = $atoi "982"</c>, <c>%var 4= $atoi "982"</c>, <c>%var = 4 $atoi "982"</c><br><br>
+
+This method may also be used for casting values with already assigned types to different ones<br>
+eg: <c>%int 8 = !get_float</c><br><br>
+
+The <c>!</c> used for function calls is also an operator, Just like many other symbols in <b>Shard</b>!<br>
+It can used for specifying the exact version of a function to be used.<br>
+eg:<br>
+<code><pre>
+parse str [1:] -&gt; 4 {
+   /* parse str into int */
+}
+
+parse str [1:] -&gt; MyStruct {
+   /* parse str into float */
+}
+
+parse int 4 -&gt; [1:] {
+   /* int to str */
+}
+
+entry:
+   %float = MyStruct !parse "28.76"
+   %int = 4 !parse "27778"
+
+   [1:] !parse int
+      =&gt; $puts
+</pre></code>
+
