@@ -89,7 +89,7 @@ pub fn get(UrlCollect(url): UrlCollect, Query(files): Query<Files>) -> Option<Ht
             <a href="/doc/spec/labels">Labels</a>
             <a href="/doc/spec/literals">Literals</a>
             <a href="/doc/spec/memory">Memory</a>
-            <a href="/doc/spec/other">other</a>
+            <a href="/doc/spec/other">Other</a>
             <a href="/doc/spec/operations">Operations</a>
          </div>
       </nav>
