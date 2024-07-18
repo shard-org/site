@@ -79,6 +79,7 @@ pub fn get(UrlCollect(url): UrlCollect, Query(files): Query<Files>) -> Option<Ht
             <a href="/doc/example/hello-world">Hello World</a>
             <a href="/doc/example/fibonacci">Fibonacci</a>
             <a href="/doc/example/bubble-sort">Bubble Sort</a>
+            <a href="/doc/example/Iterators">Iterators</a>
             <a href="/doc/example/python">Python</a>
          </div>
 

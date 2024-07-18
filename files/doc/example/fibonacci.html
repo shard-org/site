@@ -4,7 +4,7 @@ Here we're telling the linker to link <c>libc</c>.<br><br>
 :arch x86_64 linux
 :linker #LINKER -lc
 
-fibonacci n 2 -&gt; 2 {
+fibonacci 2 n, -&gt; 2 {
    (n &lt;= 1): ret n
    ret !fibonacci (n - 1) + !fibonacci (n - 2)
 }
