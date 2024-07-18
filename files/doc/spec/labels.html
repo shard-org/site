@@ -12,8 +12,7 @@ if the label ends with the <c>()</c> or <c>{}</c> attribute, the leading <c>:</c
 
 <h2>Calls and Returns</h2>
    Calling an address pushes the current IP to the stack,<br>
-   later whenever returning a word is popped from the stack and IP set to the value
- <br><br>
+   later whenever returning a word is popped from the stack and IP set to the value <br><br>
 
    use the <c>!</c> symbol to call an adress and the <c>ret</c> keyword to return, possibly with a value.<br>
    eg: <c>!print_hello</c>, <c>!0xdeadbeef</c><br>
@@ -28,12 +27,11 @@ if the label ends with the <c>()</c> or <c>{}</c> attribute, the leading <c>:</c
 
 
 <h2>Attributes</h2>
-   these are inserted after the identifier of a function/label. <br><br>
+   These are inserted after the identifier of a function/label. <br>
 
-   Each attribute may also include a trailing comma. <br>
-   This bares no functional difference, short of possibly better readability. <br><br>
+   eg: <c>main entry:</c> <i>entry</i> here is an attribute. <br><br>
 
-   eg: <c>main entry:</c> entry here is an attribute. <br><br>
+   Attributes should also be separated by a comma.<br>
      
    <div class="block quote">
       <b>entry</b><br>
@@ -62,7 +60,13 @@ if the label ends with the <c>()</c> or <c>{}</c> attribute, the leading <c>:</c
    <div class="block quote">
       <b>loop</b><br>
       Requires <i>body</i>. <br>
-      Jump to itself at the end of scope. 
+      Jump to itself at the end of scope.<br>
+      Optionally may have a block after it, which will run after every iteration of the loop<br>
+<code><pre>
+%i 8
+loop {'i ++}:
+   $printf "%d", i
+</pre></code>
    </div>
 
    <div class="block quote">
@@ -106,13 +110,26 @@ asm {
    <div class="block quote">
       <b>=&gt;</b> - then<br>
       Requires <i>body</i>. <br>
-      Expects a following value. <br>
-      Executes that following block after current function returns. <br>
-      In case of the <c>loop</c> attr this is done before the final jump<br>
+      Expects a following body.<br>
+      Executes the following block after the current function returns.<br>
       eg: <br>
 <code><pre>
 %i 4                     
-loop (i &lt; 10) =&gt; {'i ++}:
+loop {'i ++}, (i &lt; 10), =&gt; {$puts "done!"}:
+    $printf "%d", i      
+</pre></code>
+   </div>
+
+   <div class="block quote">
+      <b>&lt;=</b> - init<br>
+      Requires <i>body</i>. <br>
+      Expects a following body.<br>
+      Executes the following block upon func call.<br>
+      The block is not included within <i>loop</i> iterations,<br>
+      making it useful for setting init values and variables.<br>
+      eg: <br>
+<code><pre>
+loop {'i ++}, (i &lt; 10), init {%i 4}:
     $printf "%d", i      
 </pre></code>
    </div>
@@ -139,4 +156,14 @@ loop (i &lt; 10) =&gt; {'i ++}:
 
    This shows up as a compiler warning, as it's unstable and potentially the source of many bugs. <br>
    However as all compiler warnings it can be disabled
-     
+
+
+<h2>Lambdas</h2>
+A supertype of an anonymous label.<br>
+These can contain only a single statement, which is automatically returned.<br>
+eg: <br>
+<code><pre>
+{1, 2, 3, 4, 5, 6}
+   =&gt; !map |x: x * x|
+   =&gt; !for_each |x: $printf "%d", x|
+</pre></code>
