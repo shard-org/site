@@ -4,6 +4,8 @@ A fairly lengthy example on how an iterator implementation could be done.<br>
 :arch x86_64 linux
 :linker #LINKER -lc
 
+:extern printf _
+
 :struct Iterator {
    4 len
    [1:] array
@@ -16,13 +18,13 @@ from {1:} heap -&gt; Iterator {
 }
 
 map Iterator iter, [] func, -&gt; Iterator:
-   loop {'i ++}, &lt;= {%i 4}, (i &lt; iter#len):
+   loop {'i ++}, init {%i 4}, (i &lt; iter#len):
       'iter#array.i = !func iter#array.i
    ret iter
    
 
 for_each Iterator iter, [] func:
-   loop {'i ++}, &lt;= {%i 4}, (i &lt; iter#len):
+   loop {'i ++}, init {%i 4}, (i &lt; iter#len):
       !func iter#array.i
    $free iter#array
    ret

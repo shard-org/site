@@ -4,6 +4,6 @@ We're using the linux <c>write</c> syscall directly here<br><br>
 :arch x86_64 linux
 
 entry:
-  *write 1, "Hello, World!", 13
+  $write 1, "Hello, World!", 13
   ret
 </pre></code>
