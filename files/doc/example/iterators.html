@@ -20,20 +20,16 @@ map Iterator iter, [] func, -&gt; Iterator:
       'iter#array.i = !func iter#array.i
    ret iter
    
-for_each Iterator iter, [] func, init {%i 4}, loop {'i ++}, (i &lt; iter#len):
-   !func iter#array.i
+
+for_each Iterator iter, [] func:
+   loop {'i ++}, &lt;= {%i 4}, (i &lt; iter#len):
+      !func iter#array.i
    $free iter#array
    ret
 
 entry:
    Iterator !from {1, 2, 3, 4, 5, 6, 7, 8}
       =&gt; !map |x: x * 2|
-      =&gt; !for_each |x: $printf "%d", x|
+      =&gt; !for_each |x: $printf "%d\n", x|
    ret
-</pre></code>
-<br>
-The <c>map</c> label could also be defined in the following way. Although it makes it much less readable.<br>
-<code><pre>
-map [] func, Iterator iter, init {%i 4= 0}, loop {'i ++}, (i &lt; iter#len), =&gt; {ret iter}, -&gt; Iterator:
-   'iter#array.i = !func iter#array.i
 </pre></code>
