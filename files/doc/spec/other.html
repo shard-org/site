@@ -1,9 +1,9 @@
 <h2>Interrupts</h2>
-Invoke an interrupt with the <c>*</c> operator.<br>
-eg: <c>*0xbeef</c>
+Invoke an interrupt with the <c>$</c> operator.<br>
+eg: <c>$0xbeef</c>
 
 
 <h2>Syscalls</h2>
 Syscalls are a special case of an interrupt, accepting arguments and return types.<br>
 Adressed by name.<br>
-eg: <c>*write 1, "Hello, World!", 13</c>
+eg: <c>$write 1, "Hello, World!", 13</c>

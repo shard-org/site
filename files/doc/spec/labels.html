@@ -18,9 +18,6 @@ if the label ends with the <c>()</c> or <c>{}</c> attribute, the leading <c>:</c
    eg: <c>!print_hello</c>, <c>!0xdeadbeef</c><br>
    eg: <c>ret</c>, <c>ret 20</c><br><br>
 
-   For external functions (ones not defined within the shard source) use the <c>$</c> operator,<br>
-   syntactically identical to <c>!</c>, but doesnt provide any type checking, and is handled by the linker. <br><br>
-
    You may also jump directly to an adress using the <c>jmp</c> instruction. <br>
    This however, does not allow you to return to the point you jumped from. <br>
    eg: <c>jmp some_func</c>, <c>jmp 0xdeadbeef</c><br>
@@ -121,7 +118,7 @@ loop {'i ++}, (i &lt; 10), =&gt; {$puts "done!"}:
    </div>
 
    <div class="block quote">
-      <b>&lt;=</b> - init<br>
+      <b>init</b><br>
       Requires <i>body</i>. <br>
       Expects a following body.<br>
       Executes the following block upon func call.<br>

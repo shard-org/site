@@ -119,6 +119,33 @@
    </div>
 
    <div class="block quote">
+      <b>enum</b><br>
+      Define an enum.<br>
+<code><pre>
+:enum FoodKind {
+   Apple,
+   Banana,
+   Pizza,
+}
+</pre></code><br>
+   The variants may also hold a type.<br>
+<code><pre>
+:enum SomeEnum {
+   None,
+   [] Some,
+}
+</pre></code>
+   </div>
+
+   <div class="block quote">
+      <b>extern</b><br>
+      Define arguments for an external function, allowing it to be called with <c>!</c><br>
+      eg: <c>:extern puts [1:]</c><br><br>
+      The arguments may also be explicitly undefined, causing the function to skip type checking.<br>
+      eg: <c>:extern printf _</c>
+   </div>
+
+   <div class="block quote">
       <b>TYPE</b><br>
       Define a type of same size as an existing one.<br>
       eg: <c>:TYPE f8 8</c>
