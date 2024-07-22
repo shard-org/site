@@ -20,9 +20,8 @@ entry:
    $scanf "%d", terms
 
    %i 2
-   loop {'i ++}, (i &lt; terms) {
+   loop {'i ++}, (i &lt; terms):
       !fibonacci i =&gt;&gt; $printf "%d\n"
-   }
 
    ret
 </pre></code>

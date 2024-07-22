@@ -110,6 +110,7 @@
    <div class="block quote">
       <b>struct</b><br>
       Define a struct.<br>
+      eg:<br>
 <code><pre>
 :struct Position {
    x 4
@@ -121,6 +122,7 @@
    <div class="block quote">
       <b>enum</b><br>
       Define an enum.<br>
+      eg:<br>
 <code><pre>
 :enum FoodKind {
    Apple,
@@ -128,7 +130,8 @@
    Pizza,
 }
 </pre></code><br>
-   The variants may also hold a type.<br>
+      The variants may also hold a type.<br>
+      eg:<br>
 <code><pre>
 :enum SomeEnum {
    None,
@@ -145,6 +148,24 @@
       eg: <c>:extern printf _</c>
    </div>
 
+
+
+<h2>Internal Tags</h2>
+   These may have undebuggable and unforseen consequences, use with care<br>
+
+   <div class="block quote">
+      <b>CAST</b><br>
+      Define an approach for casting two values<br>
+      eg:<br>
+<code><pre>
+:cast [1:] -&gt; str {
+   %i 8
+   loop {'i ++}, (#1.i = 0)
+   ret {#1, i}
+}
+</pre></code>
+   </div>
+
    <div class="block quote">
       <b>TYPE</b><br>
       Define a type of same size as an existing one.<br>
@@ -154,10 +175,10 @@
    <div class="block quote">
       <b>OP</b><br>
       Defines how to handle an operation on a specified type.<br>
-      <c>reg</c> spefifies we want the value already loaded into a regiser.<br>
+      <c>reg</c> spefifies we want the value already loaded into a register.<br>
       eg:<br>
 <code><pre>
-:OP (reg f8) + (reg f8) {
+:OP + ;f8 ;f8 -&gt; ;f8{
    asm { fadd #1, #2 }
    ret #2
 }

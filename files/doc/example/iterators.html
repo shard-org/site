@@ -1,10 +1,12 @@
-<h2 class=nopad>Hello World</h2>
+<h2 class=nopad>Iterators</h2>
 A fairly lengthy example on how an iterator implementation could be done.<br>
 <code><pre>
 :arch x86_64 linux
 :linker #LINKER -lc
 
 :extern printf _
+:extern malloc 8 -&gt; []
+:extern free []
 
 :struct Iterator {
    4 len
@@ -12,26 +14,26 @@ A fairly lengthy example on how an iterator implementation could be done.<br>
 }
 
 from {1:} heap -&gt; Iterator {
-   %array = $malloc ?heap
+   %array = !malloc ?heap
    '[array] = heap
    ret {?heap, array}
 }
 
-map Iterator iter, [] func, -&gt; Iterator:
-   loop {'i ++}, init {%i 4}, (i &lt; iter#len):
-      'iter#array.i = !func iter#array.i
+map Iterator iter, [] func, -&gt; Iterator {
+   loop {'i ++}, init {%i 4}, (i &lt; iter-&gt;len):
+      'iter-&gt;array.i = !func iter-&gt;array.i
    ret iter
-   
+}
 
-for_each Iterator iter, [] func:
-   loop {'i ++}, init {%i 4}, (i &lt; iter#len):
-      !func iter#array.i
-   $free iter#array
-   ret
+for_each Iterator iter, [] func {
+   loop {'i ++}, init {%i 4}, (i &lt; iter-&gt;len):
+      !func iter-&gt;array.i
+   !free iter-&gt;array
+}
 
 entry:
    Iterator !from {1, 2, 3, 4, 5, 6, 7, 8}
       =&gt; !map |x: x * 2|
-      =&gt; !for_each |x: $printf "%d\n", x|
+      =&gt; !for_each |x: !printf "%d\n", x|
    ret
 </pre></code>
