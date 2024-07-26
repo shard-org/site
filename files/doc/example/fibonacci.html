@@ -1,14 +1,8 @@
 <h2 class=nopad>Fibonacci</h2>
 Here we're telling the linker to link <c>libc</c>.<br>
-<c>:extern printf _</c> is used to define the external function <c>printf</c>;
-However as variadics are not supported, for now, it is left as undefined.<br><br>
 <code><pre>
 :arch x86_64 linux
 :linker #LINKER -lc
-
-:extern scanf _
-:extern printf _
-
 
 fibonacci 2 n, -&gt; 2 {
    (n &lt;= 1): ret n
@@ -20,8 +14,8 @@ entry:
    $scanf "%d", terms
 
    %i 2
-   loop {'i ++}, (i &lt; terms):
-      !fibonacci i =&gt;&gt; $printf "%d\n"
+   loop, ('i ++ & i &lt; terms):
+      $printf "%d\n", (!fibonacci i)
 
    ret
 </pre></code>

@@ -14,13 +14,18 @@ if the label ends with the <c>()</c> or <c>{}</c> attribute, the leading <c>:</c
    Calling an address pushes the current IP to the stack,<br>
    later whenever returning a word is popped from the stack and IP set to the value <br><br>
 
-   use the <c>!</c> symbol to call an adress and the <c>ret</c> keyword to return, possibly with a value.<br>
+   use the <c>!</c> operator to call an adress and the <c>ret</c> keyword to return, possibly with a value.<br>
    eg: <c>!print_hello</c>, <c>!0xdeadbeef</c><br>
    eg: <c>ret</c>, <c>ret 20</c><br><br>
 
    You may also jump directly to an adress using the <c>jmp</c> instruction. <br>
    This however, does not allow you to return to the point you jumped from. <br>
    eg: <c>jmp some_func</c>, <c>jmp 0xdeadbeef</c><br>
+
+   To call an external label, use the <c>$</c> operator.<br>
+   Type checking may be enforced by defining the label with the <c>:extern</c> tag.<br>
+   WARN if not defined, this disables type checking.<br>
+   eg: <c>$puts "Hello, World!"</c><br>
 
 
 <h2>Attributes</h2>
@@ -58,10 +63,9 @@ if the label ends with the <c>()</c> or <c>{}</c> attribute, the leading <c>:</c
       <b>loop</b><br>
       Requires <i>body</i>. <br>
       Jump to itself at the end of scope.<br>
-      Optionally may have a block after it, which will run after every iteration of the loop<br>
 <code><pre>
 %i 8
-loop {'i ++}:
+loop, ('i ++ & 1):
    $printf "%d", i
 </pre></code>
    </div>
@@ -112,13 +116,13 @@ asm {
       eg: <br>
 <code><pre>
 %i 4                     
-loop {'i ++}, (i &lt; 10), =&gt; {$puts "done!"}:
+loop, ('i ++ & i &lt; 10), =&gt; {$puts "done!"}:
     $printf "%d", i      
 </pre></code>
    </div>
 
    <div class="block quote">
-      <b>init</b><br>
+      <b>&lt;-</b> - init<br>
       Requires <i>body</i>. <br>
       Expects a following body.<br>
       Executes the following block upon func call.<br>
@@ -126,7 +130,7 @@ loop {'i ++}, (i &lt; 10), =&gt; {$puts "done!"}:
       making it useful for setting init values and variables.<br>
       eg: <br>
 <code><pre>
-loop {'i ++}, (i &lt; 10), init {%i 4}:
+loop ('i ++ i &lt; 10), &lt;- {%i 4}:
     $printf "%d", i      
 </pre></code>
    </div>

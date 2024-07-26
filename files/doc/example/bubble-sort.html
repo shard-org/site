@@ -6,8 +6,6 @@ We're also using the <c>lib</c> tag to not have to directly edit linker argument
 :arch x86_64 linux
 :lib c
 
-:extern printf _
-
 :verb run /bin/sh {
    sharc #FILE
    chmod +x #NAME
@@ -20,15 +18,14 @@ entry:
    !bubble_sort array, 10
 
    // print the array
-   loop {'i ++}, (i = 10), init {%i 2} {
-      !printf "%d\n", array.i
-   }
+   loop ('i ++ & i = 10), &lt;- {%i 2}:
+      $printf "%d\n", array.i
 
    ret
 
 bubble_sort [2:] array, 2 len:
-   loop {'i ++}, (i &lt; len), init {%i 2}:
-      loop {'j ++}, (j &lt; len-i-1), init {%j 2}:
+   loop, ('i ++ & i &lt; len), &lt;- {%i 2}:
+      loop, ('j ++ & j &lt; len-i-1), &lt;- {%j 2}:
          (array.j &gt; [array.j + 1]):
             'array.j : [array.j + 1]
 </pre></code>
