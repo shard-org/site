@@ -1,14 +1,9 @@
 <h2 style="margin-top:0;padding-top:0">Macros</h2>
-   Not tags, but they're both related and comptime. <br><br>
-
    Macros may be invoked using the <c>#</c> operator. <br>
    eg: <c>#HELLO</c>, <c>#FILE</c>, <c>#hi</c><br><br>
 
-   And defined using <c>/</c><br>
-   eg: <c>/HELLO "hello, world"</c><br><br>
-
    Some macros may also be <i>transparent</i>,<br>
-   meaning they are not explicitly shown, and instead mostly derived from tags. <br>
+   meaning they arent invoked with the <c>#</c> operator, and instead implicitly evaluated.<br>
 
 
 <h2>Tags</h2>
@@ -96,6 +91,19 @@
    </div>
 
    <div class="block quote">
+      <b>macro</b><br>
+      Define a macro. <br>
+      eg: <c>:macro hello "Hello, World!"</c>
+   </div>
+
+   <div class="block quote">
+      <b>global</b><br>
+      Expose a symbol to the linker.<br>
+      (the `entry` attribute does this automatically)<br>
+      eg: <c>:global main</c>
+   </div>
+
+   <div class="block quote">
       <b>nowarn</b><br>
       Disable warnings. <br>
       eg: <c>:nowarn</c>
@@ -146,13 +154,8 @@
       eg: <c>:extern puts [1:]</c><br><br>
    </div>
 
-
-
-<h2>Internal Tags</h2>
-   These may have undebuggable and unforseen consequences, use with care<br>
-
    <div class="block quote">
-      <b>CAST</b><br>
+      <b>cast</b><br>
       Define an approach for casting two values<br>
       eg:<br>
 <code><pre>
@@ -165,18 +168,18 @@
    </div>
 
    <div class="block quote">
-      <b>TYPE</b><br>
+      <b>type</b><br>
       Define a type of same size as an existing one.<br>
-      eg: <c>:TYPE f8 8</c>
+      eg: <c>:type f8 8</c>
    </div>
 
    <div class="block quote">
-      <b>OP</b><br>
+      <b>op</b><br>
       Defines how to handle an operation on a specified type.<br>
       <c>reg</c> spefifies we want the value already loaded into a register.<br>
       eg:<br>
 <code><pre>
-:OP + ;f8 ;f8 -&gt; ;f8{
+:op + ;f8 ;f8 -&gt; ;f8{
    asm { fadd #1, #2 }
    ret #2
 }
@@ -184,41 +187,35 @@
    </div>
 
    <div class="block quote">
-      <b>WORD</b><br>
+      <b>word</b><br>
       Set word size to a value. <br>
-      eg: <c>:WORD 8</c>
+      eg: <c>:word 8</c>
    </div>
 
    <div class="block quote">
-      <b>ATTR</b><br>
-      Transparently macro for attributes<br>
-      eg: <c>:ATTR "static" "@ .data"</c>
-   </div>
-
-   <div class="block quote">
-      <b>REG</b><br>
+      <b>reg</b><br>
       Transparent macro for registers. <br>
-      eg: <c>:REG r0 "rax"</c>
+      eg: <c>:reg r0 "rax"</c>
    </div>
 
    <div class="block quote">
-      <b>SYSCALL_ADDR</b><br>
+      <b>syscall_addr</b><br>
       Interrupt adress used for syscalls<br>
-      eg: <c>:SYSCALL_ADDR 0x80</c>
+      eg: <c>:syscall_addr 0x80</c>
    </div>
 
    <div class="block quote">
-      <b>SYSCALL_CONV</b><br>
+      <b>syscall_conv</b><br>
       Calling convention for syscalls<br>
-      eg: <c>:SYSCALL_CONV r0, r5, r4, r3, r10, r9, r8 -&gt; r0</c>
+      eg: <c>:syscall_conv r0, r5, r4, r3, r10, r9, r8 -&gt; r0</c>
    </div>
 
    <div class="block quote">
-      <b>SYSCALL</b><br>
+      <b>syscall</b><br>
       Define name, args, and return for a syscall. <br>
       eg:<br>
 <code><pre>
-:SYSCALL write {
+:syscall write {
    8 = 0x01
    4 "File Descriptor"
    [1] "Buffer"
@@ -228,17 +225,17 @@
    </div>
 
    <div class="block quote">
-      <b>STR_ENC</b><br>
+      <b>str_enc</b><br>
       Changes the encoding used for strings (default: ext-ascii)<br>
-      eg: <c>:STR_ENC parity-ascii</c>
+      eg: <c>:str_enc parity-ascii</c>
    </div>
 
    <div class="block quote">
-      <b>DEF_ENC</b><br>
+      <b>def_enc</b><br>
       Define a custom encoding. <br>
       eg:<br>
 <code><pre>
-:DEF_ENC my-ascii {
+:def_enc my-ascii {
    `a` 1
    `b` 2
 }
@@ -246,9 +243,9 @@
    </div>
 
    <div class="block quote">
-      <b>STR_TERM</b><br>
+      <b>str_term</b><br>
       Implicitly terminate string literals with value
-      eg: <c>:STR_TERM 0</c>
+      eg: <c>:str_term 0</c>
    </div>
 
 <h2><b>TO BE CONTINUED</b></h2>
