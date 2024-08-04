@@ -2,11 +2,11 @@
 The defined script will be called on <c>sharc run</c>.<br>
 We're also using the <c>lib</c> tag to not have to directly edit linker arguments.<br><br>
 <code><pre>
-:name bubble_sort
-:arch x86_64 linux
-:lib c
+:NAME bubble_sort
+:ARCH x86_64 linux
+:LIB c
 
-:verb run /bin/sh {
+:VERB run /bin/sh {
    sharc #FILE
    chmod +x #NAME
    ./#NAME
@@ -18,7 +18,7 @@ entry:
    !bubble_sort array, 10
 
    // print the array
-   loop ('i ++ & i = 10), &lt;- {%i 2}:
+   loop, ('i ++ & i = 10), &lt;- {%i 2}:
       $printf "%d\n", array.i
 
    ret

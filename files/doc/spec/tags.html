@@ -10,79 +10,79 @@
    Tags are used to change the behaviour of the compiler,<br>
    and allow for defining the architecture<br><br>
 
-   Most tags' value may be invoked using a macro with the same name (all caps)<br>
+   Most tags' value may be invoked using a macro with the same name<br>
    eg: <c>#NAME</c>
    
    <div class="block quote">
-      <b>name</b><br>
+      <b>NAME</b><br>
       Filename for the output binary, and project/lib ident<br>
-      eg: <c>:name my_program</c>
+      eg: <c>:NAME my_program</c>
    </div>
 
    <div class="block quote">
-      <b>arch</b><br>
+      <b>NAME</b><br>
       Architecture to use. <br>
-      eg: <c>:arch x86_64 linux</c>
+      eg: <c>:NAME x86_64 linux</c>
    </div>
 
    <div class="block quote">
-      <b>version</b><br>
+      <b>VERSION</b><br>
       Project version, appended to bin name.<br>
-      eg: <c>:version 2.0.1</c>
+      eg: <c>:VERSION 2.0.1</c>
    </div>
 
    <div class="block quote">
-      <b>nostd</b><br>
+      <b>NOSTD</b><br>
       Don't parse any code from std, only tags and definitions.<br>
-      eg: <c>:nostd</c>
+      eg: <c>:NOSTD</c>
    </div>
 
    <div class="block quote">
-      <b>dep</b> <s>future</s><br>
+      <b>DEP</b> <s>future</s><br>
       Use a shard lib located at path, or pulled from given repo<br>
-      eg: <c>:dep https://example.com/some_good_shard_lib</c><br><br>
+      eg: <c>:DEP https://example.com/some_good_shard_lib</c><br><br>
 
       By default it's statically linked, to make it dynamically linked add <c>dyn</c><br>
-      eg: <c>:dep dyn /path/to/file</c>
+      eg: <c>:DEP dyn /path/to/file</c>
    </div>
 
    <div class="block quote">
-      <b>use</b><br>
+      <b>USE</b><br>
       Import another source code file. <br>
-      eg: <c>:use utils.shd</c>
+      eg: <c>:USE utils.shd</c>
    </div>
 
    <div class="block quote">
-      <b>lib</b> <s>concept</s><br>
+      <b>LIB</b> <s>concept</s><br>
       Add an external library, automatically setting linker flags. <br>
-      eg: <c>:lib libssh2</c>
+      eg: <c>:LIB libssh2</c>
    </div>
 
    <div class="block quote">
-      <b>linker</b><br>
+      <b>LINKER</b><br>
       Set linker and its flags<br>
-      eg: <c>:linker ld</c>, <c>:linker #LINKER -lc</c><br>
+      eg: <c>:LINKER ld</c>, <c>:LINKER #LINKER -lc</c><br>
    </div>
 
    <div class="block quote">
-      <b>assembler</b><br>
+      <b>ASSEMBLER</b><br>
       Set assembler and its flags<br>
-      eg: <c>:assembler as</c><br>
+      eg: <c>:ASSEMBLER as</c><br>
    </div>
 
    <div class="block quote">
-      <b>sharc</b><br>
-      Set additional flags to run <b>sharc</b> with<br>
-      eg: <c>sharc -l d</c>
+      <b>SHARC</b><br>
+      Set additional flags to run <b>SHARC</b> with<br>
+      eg: <c>SHARC -l d</c>
    </div>
 
    <div class="block quote">
-      <b>verb</b><br>
+      <b>VERB</b><br>
       Define a <b>sharc</b> verb, like <c>sharc run</c>. <br>
       Setting name to DEFAULT, will cause it to be used when no verb is given. <br>
       eg:<br>
 <code><pre>
-:verb run /bin/sh {
+:VERB run /bin/sh {
    sharc #FILE
    chmod +x #NAME
    ./#NAME
@@ -91,33 +91,33 @@
    </div>
 
    <div class="block quote">
-      <b>macro</b><br>
+      <b>MACRO</b><br>
       Define a macro. <br>
-      eg: <c>:macro hello "Hello, World!"</c>
+      eg: <c>:MACRO hello "Hello, World!"</c>
    </div>
 
    <div class="block quote">
-      <b>global</b><br>
+      <b>GLOBAL</b><br>
       Expose a symbol to the linker.<br>
       (the `entry` attribute does this automatically)<br>
-      eg: <c>:global main</c>
+      eg: <c>:GLOBAL main</c>
    </div>
 
    <div class="block quote">
-      <b>nowarn</b><br>
+      <b>NOWARN</b><br>
       Disable warnings. <br>
-      eg: <c>:nowarn</c>
+      eg: <c>:NOWARN</c>
    </div>
 
    <div class="block quote">
-      <b>noasm</b><br>
+      <b>NOASM</b><br>
       Dont run the assembler. <br>
-      eg: <c>:noasm</c>
+      eg: <c>:NOASM</c>
    </div>
 
    <div class="block quote">
-      <b>struct</b><br>
-      Define a struct.<br>
+      <b>STRUCT</b><br>
+      Define a STRUCT.<br>
       eg:<br>
 <code><pre>
 :struct Position {
@@ -128,11 +128,11 @@
    </div>
 
    <div class="block quote">
-      <b>enum</b><br>
+      <b>ENUM</b><br>
       Define an enum.<br>
       eg:<br>
 <code><pre>
-:enum FoodKind {
+:ENUM FoodKind {
    Apple,
    Banana,
    Pizza,
@@ -149,17 +149,17 @@
    </div>
 
    <div class="block quote">
-      <b>extern</b><br>
+      <b>EXTERN</b><br>
       Define arguments for an external function, allowing for type checking.<br>
-      eg: <c>:extern puts [1:]</c><br><br>
+      eg: <c>:EXTERN puts [1:]</c><br><br>
    </div>
 
    <div class="block quote">
-      <b>cast</b><br>
+      <b>CAST</b><br>
       Define an approach for casting two values<br>
       eg:<br>
 <code><pre>
-:cast [1:] -&gt; str {
+:CAST [1:] -&gt; str {
    %i 8
    loop {'i ++}, (#1.i = 0)
    ret {#1, i}
@@ -168,54 +168,54 @@
    </div>
 
    <div class="block quote">
-      <b>type</b><br>
+      <b>TYPE</b><br>
       Define a type of same size as an existing one.<br>
-      eg: <c>:type f8 8</c>
+      eg: <c>:TYPE f8 8</c>
    </div>
 
    <div class="block quote">
-      <b>op</b><br>
+      <b>OP</b><br>
       Defines how to handle an operation on a specified type.<br>
       <c>reg</c> spefifies we want the value already loaded into a register.<br>
       eg:<br>
 <code><pre>
-:op + ;f8 ;f8 -&gt; ;f8{
-   asm { fadd #1, #2 }
+:OP ;f8 + ;f8 -&gt; ;f8{
+   @asm { fadd #1, #2 }
    ret #2
 }
 </pre></code>
    </div>
 
    <div class="block quote">
-      <b>word</b><br>
+      <b>WORD</b><br>
       Set word size to a value. <br>
-      eg: <c>:word 8</c>
+      eg: <c>:WORD 8</c>
    </div>
 
    <div class="block quote">
-      <b>reg</b><br>
+      <b>REG</b><br>
       Transparent macro for registers. <br>
-      eg: <c>:reg r0 "rax"</c>
+      eg: <c>:REG r0 "rax"</c>
    </div>
 
    <div class="block quote">
-      <b>syscall_addr</b><br>
+      <b>SYSCALL_ADDR</b><br>
       Interrupt adress used for syscalls<br>
-      eg: <c>:syscall_addr 0x80</c>
+      eg: <c>:SYSCALL_ADDR 0x80</c>
    </div>
 
    <div class="block quote">
-      <b>syscall_conv</b><br>
+      <b>SYSCALL_CONV</b><br>
       Calling convention for syscalls<br>
-      eg: <c>:syscall_conv r0, r5, r4, r3, r10, r9, r8 -&gt; r0</c>
+      eg: <c>:SYSCALL_CONV r0, r5, r4, r3, r10, r9, r8 -&gt; r0</c>
    </div>
 
    <div class="block quote">
-      <b>syscall</b><br>
+      <b>SYSCALL</b><br>
       Define name, args, and return for a syscall. <br>
       eg:<br>
 <code><pre>
-:syscall write {
+:SYSCALL write {
    8 = 0x01
    4 "File Descriptor"
    [1] "Buffer"
@@ -225,17 +225,17 @@
    </div>
 
    <div class="block quote">
-      <b>str_enc</b><br>
+      <b>STR_ENC</b><br>
       Changes the encoding used for strings (default: ext-ascii)<br>
-      eg: <c>:str_enc parity-ascii</c>
+      eg: <c>:STR_ENC parity-ascii</c>
    </div>
 
    <div class="block quote">
-      <b>def_enc</b><br>
+      <b>DEF_ENC</b><br>
       Define a custom encoding. <br>
       eg:<br>
 <code><pre>
-:def_enc my-ascii {
+:DEF_ENC my-ascii {
    `a` 1
    `b` 2
 }
@@ -243,9 +243,10 @@
    </div>
 
    <div class="block quote">
-      <b>str_term</b><br>
+      <b>STR_TERM</b><br>
       Implicitly terminate string literals with value
-      eg: <c>:str_term 0</c>
+      eg: <c>:STR_TERM 0</c><br>
+      May also be set to <c>{}</c> to disable implicit termination<br>
    </div>
 
 <h2><b>TO BE CONTINUED</b></h2>

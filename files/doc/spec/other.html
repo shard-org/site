@@ -7,3 +7,44 @@ eg: <c>*0xbeef</c>
 Syscalls are a special case of an interrupt, accepting arguments and return types.<br>
 Adressed by name.<br>
 eg: <c>*write 1, "Hello, World!", 13</c>
+
+
+<h2>Builtin</h2>
+Envoked with the builtin call operator (<c>@</c>).<br>
+All builtins are evaluated at compiletime.<br>
+eg: <c>@size 2</c>. <c>@align Position</c>, <c>@trap</c>
+
+   <div class="block quote">
+      <b>size</b><br>
+      Returns the compile time size of the type.<br>
+      eg: <c>@size [] == 8</c>, <c>@size Position == 4</c>
+   </div>
+
+   <div class="block quote">
+      <b>varsize</b><br>
+      Returns the compile time size of the variable.<br>
+      eg: <c>@varsize some_str == 8</c>
+   </div>
+
+   <div class="block quote">
+      <b>align</b><br>
+      Returns the compile time alignment of the type.<br>
+      eg: <c>@align [] == 8</c>, <c>@align Position == 4</c>
+   </div>
+
+   <div class="block quote">
+      <b>asm</b><br>
+      Raw assembly, pasted into the generated output.<br>
+      eg:<br>
+<code><pre>
+@asm {
+   mov $0, %rax
+}
+</pre></code>
+   </div>
+
+   <div class="block quote">
+      <b>cast</b><br>
+      Casts a type to another.<br>
+      eg: <c>Position @cast my_var</c>
+   </div>

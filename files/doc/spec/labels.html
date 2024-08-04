@@ -97,19 +97,6 @@ do_thing def 20 {
    </div>
 
    <div class="block quote">
-      <b>asm</b><br>
-      Requires <i>body</i>. <br>
-      <s>We're actually debating this as it's a label block with custom syntax</s>
-      Raw assembly, pasted into the generated output.<br>
-      eg:<br>
-<code><pre>
-asm {
-   mov $0, %rax
-}
-</pre></code>
-   </div>
-
-   <div class="block quote">
       <b>=&gt;</b> - then<br>
       Requires <i>body</i>. <br>
       Expects a following body.<br>
@@ -131,7 +118,7 @@ loop, ('i ++ & i &lt; 10), =&gt; {$puts "done!"}:
       making it useful for setting init values and variables.<br>
       eg: <br>
 <code><pre>
-loop ('i ++ i &lt; 10), &lt;- {%i 4}:
+loop ('i ++ & i &lt; 10), &lt;- {%i 4}:
     $printf "%d", i      
 </pre></code>
    </div>
